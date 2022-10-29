@@ -2,15 +2,21 @@ import React from "react";
 
 import MoviesList from "./components/MoviesList";
 import "./App.css";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 function App() {
 	const [movies, setMovies] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
 
+	// usually we should add the fetchMoviesHandler function as a dependency, but since in our case it won't change, we can ommit it; but there might be cases when it could change due to external state
+	// in those cases, and for best practice, we should wrap the fetchMoviesHandler in a useCallback()
+	useEffect(() => {
+		fetchMoviesHandler();
+	}, []);
+
 	// async/await approach:
-	async function fetchMoviesHandler() {
+	const fetchMoviesHandler = useCallback(async () => {
 		setIsLoading(true);
 		setError(null);
 		try {
@@ -37,7 +43,7 @@ function App() {
 			setError(error.message);
 		}
 		setIsLoading(false);
-	}
+	}, []);
 	// .then() approach:
 	// function fetchMoviesHandler() {
 	// 	// we can add a second parameter for fetch(), which can take an object of properties like header, body, method(GET, POST, etc), etc
