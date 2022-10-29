@@ -7,21 +7,35 @@ import { useState } from "react";
 function App() {
 	const [movies, setMovies] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState(null);
 
 	// async/await approach:
 	async function fetchMoviesHandler() {
 		setIsLoading(true);
-		const response = await fetch("https://swapi.dev/api/films");
-		const data = await response.json();
-		const transformedMovies = data.results.map((movieData) => {
-			return {
-				id: movieData.episode_id,
-				title: movieData.title,
-				openingText: movieData.opening_crawl,
-				releaseData: movieData.release_date,
-			};
-		});
-		setMovies(transformedMovies);
+		setError(null);
+		try {
+			const response = await fetch("https://swapi.dev/api/films");
+			// response also has a "status" field which holds the concrete response status code
+			if (!response.ok) {
+				// this throw causes the try to enter the catch phase; fetch doesn't throw an error in case it fails, so we either need to do this manually or use an external tool like axios
+				throw new Error("Something went wrong!");
+			}
+
+			const data = await response.json();
+
+			const transformedMovies = data.results.map((movieData) => {
+				return {
+					id: movieData.episode_id,
+					title: movieData.title,
+					openingText: movieData.opening_crawl,
+					releaseData: movieData.release_date,
+				};
+			});
+			setMovies(transformedMovies);
+			setIsLoading(false);
+		} catch (error) {
+			setError(error.message);
+		}
 		setIsLoading(false);
 	}
 	// .then() approach:
@@ -57,6 +71,7 @@ function App() {
 				)}
 				{!isLoading && movies.length === 0 && <p>Found no movies!</p>}
 				{isLoading && <p>Loading...</p>}
+				{!isLoading && error && <p>{error}</p>}
 			</section>
 		</React.Fragment>
 	);
